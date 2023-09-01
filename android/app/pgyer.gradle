@@ -1,0 +1,214 @@
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+task pgyer() {
+    Gradle gradle = getGradle()
+    gradle.getStartParameter().getTaskRequests().find {
+        String assembleTask = it.args.find { it.startsWith("assemble") }
+        if (assembleTask != null && !assembleTask.isEmpty()) {
+            println("dependsTask -> " + assembleTask)
+            dependsOn assembleTask
+            return
+        }
+    }
+
+    doLast {
+        String apiKey = "79fdd1bffed67da4ade389c32f866eba"
+        String desc
+        String log = getGitLog()
+
+        String channel = gradle.startParameter.projectProperties.get('channel')
+        if (channel == null || channel.isEmpty()) {
+            channel = "official"
+        }
+        String pin = gradle.startParameter.projectProperties.get('pin')
+        if (pin == null || pin.isEmpty()) {
+            pin = "false"
+        }
+        String pinString = ""
+        if (pin == "true") {
+            pinString = "pinned"
+        } else {
+            pinString = "unpin"
+        }
+
+        String apkPath = getApkPath(channel, pinString)
+        desc = "\n\nAPK Channel: " + channel + "\n"
+        desc += "SSL pin: " + pin + "\n\n"
+
+        if (log == null || log.isEmpty()) {
+            desc += "No changes since last build"
+        } else {
+            desc += "Here is what changed:\n" + log
+        }
+
+        println('Desc：' + desc)
+        println('APK Path：' + apkPath)
+
+        def result = new ByteArrayOutputStream()
+
+        exec {
+            commandLine 'curl'
+            args '-k', 'https://www.pgyer.com/apiv2/app/upload',
+                    '-F', "_api_key=${apiKey}",
+                    '-F', "file=@${apkPath}",
+                    '-F', "buildUpdateDescription=${desc}",
+                    '--progress-bar', '--verbose'
+            standardOutput = result
+        }
+
+        def jsonSlurper = new groovy.json.JsonSlurper()
+        def parseList = jsonSlurper.parseText(result.toString())
+        def data = parseList.data
+        project.ext.pgyerUploadUrl = "https://www.pgyer.com/" + data.buildKey
+        project.ext.buildVersion = data.buildVersion
+        project.ext.buildVersionNo = data.buildVersionNo
+        project.ext.buildUpdateDescription = data.buildUpdateDescription
+        project.ext.buildQRCodeURL = data.buildQRCodeURL
+        project.ext.buildFileName = data.buildFileName
+        project.ext.buildCreated = data.buildCreated
+        def fileSize = data.buildFileSize
+        double size = 0.0
+        if (fileSize != null) {
+            fileSize = fileSize as String
+            if (!fileSize.isEmpty()) {
+                size = fileSize.toLong() / 1024 / 1024d
+            }
+        }
+        String fileSizeStr
+        if (size <= 0) {
+            fileSizeStr = "UnKnow"
+        } else {
+            fileSizeStr = String.format("%.2f", size) + "m"
+        }
+        project.ext.buildFileSize = fileSizeStr
+        println("APK Channel = " + channel)
+        println("SSL pin = " + pin)
+        println("Pgyer URL = " + project.ext.pgyerUploadUrl)
+        println("APK Size = " + project.ext.buildFileSize)
+    }
+}
+
+task slackPublic() {
+    dependsOn 'pgyer'
+    doLast {
+        def desc = "Hi <!here> A new APK version is available." + "\n" +
+                "APK Name: " + project.ext.buildFileName + "\n" +
+                "Pgyer URL: " + project.ext.pgyerUploadUrl + "\n" +
+                "Pgyer QR Code URL: " + project.ext.buildQRCodeURL + "\n" +
+                "APK Size: " + project.ext.buildFileSize + "\n" +
+                "APK Build Version: " + project.ext.buildVersion + "\n" +
+                "APK Build Version No: " + project.ext.buildVersionNo + "\n" +
+                "APK Build Created Time: " + project.ext.buildCreated + "\n" +
+                project.ext.buildUpdateDescription + "\n\n" +
+                "You can also find all the builds here.\n" +
+                "(dev) https://www.pgyer.com/lx0R\n" +
+                "(stag) https://www.pgyer.com/d2ZM\n" +
+                "(preprod) https://www.pgyer.com/YU6B\n" +
+                "(prod) https://www.pgyer.com/uA5V"
+        println('Desc：\n' + desc)
+        exec {
+            commandLine 'curl'
+            args '-X', 'POST', '-H', "'Content-type: application/json'", '--data', "{\"text\":\"$desc\"}", 'https://hooks.slack.com/services/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', '--verbose'
+        }
+    }
+}
+
+task slack() {
+    dependsOn 'pgyer'
+    doLast {
+        def desc = "Hi <!here> A new APK version is available." + "\n" +
+                "APK Name: " + project.ext.buildFileName + "\n" +
+                "Pgyer URL: " + project.ext.pgyerUploadUrl + "\n" +
+                "Pgyer QR Code URL: " + project.ext.buildQRCodeURL + "\n" +
+                "APK Size: " + project.ext.buildFileSize + "\n" +
+                "APK Build Version: " + project.ext.buildVersion + "\n" +
+                "APK Build Version No: " + project.ext.buildVersionNo + "\n" +
+                "APK Build Created Time: " + project.ext.buildCreated + "\n" +
+                project.ext.buildUpdateDescription + "\n\n" +
+                "You can also find all the builds here.\n" +
+                "(dev) https://www.pgyer.com/lx0R\n" +
+                "(stag) https://www.pgyer.com/d2ZM\n" +
+                "(preprod) https://www.pgyer.com/YU6B\n" +
+                "(prod) https://www.pgyer.com/uA5V"
+        println('Desc：\n' + desc)
+        exec {
+            commandLine 'curl'
+            args '-X', 'POST', '-H', "'Content-type: application/json'", '--data', "{\"text\":\"$desc\"}", 'https://hooks.slack.com/services/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', '--verbose'
+        }
+    }
+}
+
+def getGitLog() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        if (project.hasProperty("preCommit")) {
+            commandLine 'git', 'log', "$preCommit..", '--pretty=format:%s (%an)'
+            standardOutput = stdout
+        } else {
+            commandLine 'git', 'log', '--pretty=format:%s (%an)', '-10'
+            standardOutput = stdout
+        }
+    }
+
+    String str = stdout.toString()
+
+    if (str == null || str.isEmpty()) {
+        return ""
+    } else {
+        return str.split('\n')
+                .findAll { !it.contains("Merge") }
+                .collect { it.replaceAll(/(DBCCNCE-[\d]+)/, 'https://tools.adidas-group.com/jira/browse/$1') }
+                .collect { it.replaceAll(/(CNCONF-[\d]+)/, 'https://tools.adidas-group.com/jira/browse/$1') }
+                .collect { it.replaceAll('"', '') }
+                .collect { '* ' + it }
+                .join('\n')
+    }
+}
+
+def getApkPath(channel, pin) {
+    String buildType = getBuildType().toLowerCase()
+    String flavorPath = getFlavorPath()
+    return new File(buildDir, "outputs/apk/${flavorPath}/${buildType}/CONFIRMED-${flavorPath}-${VERSION_NAME}-${pin}.apk").absolutePath
+}
+
+def getCurrentVariant() {
+    Gradle gradle = getGradle()
+    String tskReqStr = gradle.getStartParameter().getTaskRequests().toString()
+
+    Pattern pattern;
+
+    if (tskReqStr.contains("assemble"))
+        pattern = Pattern.compile("assemble(\\w+)(Release|Debug)")
+    else
+        pattern = Pattern.compile("generate(\\w+)(Release|Debug)")
+
+    Matcher matcher = pattern.matcher(tskReqStr)
+
+    if (matcher.find()) {
+        String str = matcher.group(1)
+        return str.substring(0, 1).toLowerCase() + str.substring(1)
+        // Changing to 2 will return build type, 1 provides product flavor
+    } else {
+        println "NO MATCH FOUND"
+        return ""
+    }
+}
+
+def getBuildType() {
+    Gradle gradle = getGradle()
+    String args = gradle.getStartParameter().getTaskRequests().toString()
+    println('getBuildType:' + args)
+    if (args.contains("Release")) {
+        return "Release"
+    } else if (args.contains("Debug")) {
+        return "Debug"
+    }
+    return "Debug"
+}
+
+def getFlavorPath() {
+    String args = getCurrentVariant()
+    println('getFlavorPath：' + args)
+    return args
+}

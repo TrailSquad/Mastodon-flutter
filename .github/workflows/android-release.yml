@@ -1,0 +1,43 @@
+name: android Release
+
+on:
+  push:
+    branches: [ feat/android_workflows ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+          - Dev
+          - Stag
+          - Prod
+        required: true
+        default: 'Stag'
+      pin:
+        type: boolean
+        description: 'enable certificate transparency'
+        required: false
+        default: 'false'
+      networkLog:
+        type: boolean
+        description: 'enable chucker (a HTTP inspector for Android)'
+        required: false
+        default: 'false'
+      versionCode:
+        description: 'code of version, ie: 1'
+        required: false
+        default: ''
+      versionName:
+        description: 'name of version, ie: 1.0.0'
+        required: false
+        default: ''
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build with Gradle
+        run: ./gradlew assemble${{ github.event.inputs.environment }}StableRelease pgyer slack -PversionCode="${{ github.event.inputs.versionCode }}" -PversionName="${{ github.event.inputs.versionName }}" -Ppin="${{ github.event.inputs.pin }}" -PnetworkLog="${{ github.event.inputs.networkLog }}"
