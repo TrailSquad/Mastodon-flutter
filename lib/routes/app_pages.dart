@@ -1,4 +1,7 @@
+import 'package:flutter_boilerplate_app/modules/explore/explore_page.dart';
 import 'package:flutter_boilerplate_app/modules/main/main_page.dart';
+import 'package:flutter_boilerplate_app/modules/messages/messages_page.dart';
+import 'package:flutter_boilerplate_app/modules/notifications/notifications_page.dart';
 import 'package:get/get.dart';
 
 import '../modules/login/login_binding.dart';
@@ -28,6 +31,9 @@ class AppPages {
     GetPage(name: Routes.uiSnackbar, page: () => const UISnackbarPage()),
     GetPage(name: Routes.login, page: () => const LoginPage(), binding: LoginBinding()),
     GetPage(name: Routes.socialShare, page: () => const SocialSharePage()),
-    GetPage(name: Routes.isarCourse, page: () => IsarCourse())
+    GetPage(name: Routes.isarCourse, page: () => IsarCourse()),
+    GetPage(name: Routes.notifications, page: () => const NotificationsPage()),
+    GetPage(name: Routes.explore, page: () => const ExplorePage()),
+    GetPage(name: Routes.message, page: () => const MessagesPage())
   ];
 }

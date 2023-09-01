@@ -38,9 +38,11 @@ class MyBottomNavBar extends StatelessWidget {
 
   List<BottomNavigationBarItem> _buildBottomNavigationBarItems() {
     return [
-      _buildBottomNavigationBarItem("Discover", GMAsset.navHome, active: tabIndex == 0),
-      _buildBottomNavigationBarItem("Vehicle", GMAsset.navCar, active: tabIndex == 1),
-      _buildBottomNavigationBarItem("Profile", GMAsset.navUser, active: tabIndex == 2),
+      _buildBottomNavigationBarItem("Timeline", GMAsset.navHome, active: tabIndex == 0),
+      _buildBottomNavigationBarItem("Notifications", GMAsset.navCar, active: tabIndex == 1),
+      _buildBottomNavigationBarItem("Explore", GMAsset.navUser, active: tabIndex == 2),
+      _buildBottomNavigationBarItem("Messages", GMAsset.navUser, active: tabIndex == 3),
+      _buildBottomNavigationBarItem("Profile", GMAsset.navUser, active: tabIndex == 4),
     ];
   }
 

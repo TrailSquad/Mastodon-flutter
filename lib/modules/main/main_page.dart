@@ -6,7 +6,9 @@ import '../../utils/theme_util.dart';
 import 'widgets/bottom_navbar.dart';
 import '../discover/discover_page.dart';
 import '../profile/profile_page.dart';
-import '../vehicle/vehicle_page.dart';
+import '../notifications/notifications_page.dart';
+import '../explore/explore_page.dart';
+import '../messages/messages_page.dart';
 
 class MainPage extends GetView<MainController> {
   const MainPage({super.key});
@@ -14,7 +16,9 @@ class MainPage extends GetView<MainController> {
   _buildCurrentPage() {
     List<Widget> pages = [
       const DiscoverPage(),
-      const VehiclePage(),
+      const NotificationsPage(),
+      const ExplorePage(),
+      const MessagesPage(),
       const ProfilePage(),
     ];
     return pages[controller.tabIndex.value];
