@@ -2,6 +2,7 @@ import 'package:flutter_boilerplate_app/modules/explore/explore_page.dart';
 import 'package:flutter_boilerplate_app/modules/main/main_page.dart';
 import 'package:flutter_boilerplate_app/modules/messages/messages_page.dart';
 import 'package:flutter_boilerplate_app/modules/notifications/notifications_page.dart';
+import 'package:flutter_boilerplate_app/modules/timeline/timeline_page.dart';
 import 'package:get/get.dart';
 
 import '../modules/login/login_binding.dart';
@@ -34,6 +35,7 @@ class AppPages {
     GetPage(name: Routes.isarCourse, page: () => IsarCourse()),
     GetPage(name: Routes.notifications, page: () => const NotificationsPage()),
     GetPage(name: Routes.explore, page: () => const ExplorePage()),
-    GetPage(name: Routes.message, page: () => const MessagesPage())
+    GetPage(name: Routes.message, page: () => const MessagesPage()),
+    GetPage(name: Routes.timeline, page: () => const TimelinePage())
   ];
 }
