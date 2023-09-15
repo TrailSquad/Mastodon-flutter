@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate_app/modules/timeline/timeline_page.dart';
 import 'package:get/get.dart';
 
 import 'main_controller.dart';
@@ -15,7 +16,7 @@ class MainPage extends GetView<MainController> {
 
   _buildCurrentPage() {
     List<Widget> pages = [
-      const DiscoverPage(),
+      const TimelinePage(),
       const NotificationsPage(),
       const ExplorePage(),
       const MessagesPage(),
