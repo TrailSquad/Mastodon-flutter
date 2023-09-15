@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate_app/data/models/message.dart';
 import 'package:flutter_boilerplate_app/utils/theme_util.dart';
+import 'package:flutter_boilerplate_app/widgets/message_tile.dart';
 import 'package:get/get.dart';
 
 class TimelinePage extends StatefulWidget {
@@ -10,12 +12,7 @@ class TimelinePage extends StatefulWidget {
 }
 
 class _TimelinePageState extends State<TimelinePage> {
-  List<String> posts = [
-    "Post 1",
-    "Post 2",
-    "Post 3",
-    // Add more dummy posts here...
-  ];
+  List<Message> posts = MessageExtension.dummyMessages;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,7 @@ class _TimelinePageState extends State<TimelinePage> {
         ),
         title: TextButton(
           child: const Text(
-            "Timeline",
+            _Constants.pageTitle,
             style: TextStyle(color: Colors.white),
           ),
           onPressed: () {
@@ -51,11 +48,8 @@ class _TimelinePageState extends State<TimelinePage> {
         itemBuilder: (BuildContext context, int index) {
           return Container(
             color: Colors.white,
-            height: 200,
-            child: ListTile(
-              title: Text(posts[index]),
-            ),
-            
+            height: _Constants.itemHeight,
+            child: MessageTile(message: posts[index],),
           );
         },
         separatorBuilder: (BuildContext context, int index) {
@@ -65,4 +59,9 @@ class _TimelinePageState extends State<TimelinePage> {
       ),
     );
   }
+}
+
+class _Constants {
+  static const String pageTitle = "Timeline";
+  static const double itemHeight = 200;
 }
